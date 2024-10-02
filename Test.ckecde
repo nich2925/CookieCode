@@ -1,0 +1,4 @@
+var(declare):"x"
+var(declare-type):x string
+var(value-set):x "A"
+prt(var):"x"

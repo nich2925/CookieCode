@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CookieCode Interpreter Version 2</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000000; /* Black background */
+            color: #00ff00; /* Green text color */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        textarea {
+            width: 80%;
+            height: 80%;
+            padding: 10px;
+            border: 1px solid #00ff00; /* Green border */
+            background: #000000; /* Black background */
+            color: #00ff00; /* Green text color */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+            overflow: auto;
+            white-space: pre-wrap; /* Ensures text wraps */
+        }
+
+        input[type="file"] {
+            display: none; /* Hide file input */
+        }
+    </style>
+</head>
+<body>
+    <textarea id="codeInput" placeholder="CookieCode Interpreter Version 2
+(c) 2024 NetDig™ Technologies. All rights reserved.
+Type 'Upload' to upload a .ckecde file, 'Run' to execute the code, 'Help' to show avaliable commands, 'Copyright' to view copyright and license, or 'CLS' to clear screen. Write your CookieCode here..."></textarea>
+    <input type="file" id="fileInput" accept=".ckecde">
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const codeInput = document.getElementById('codeInput');
+            const fileInput = document.getElementById('fileInput');
+
+            codeInput.addEventListener('keydown', handleCommand);
+
+            function handleCommand(event) {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    const lines = codeInput.value.trim().split('\n');
+                    const lastLine = lines[lines.length - 1].trim();
+
+                    if (lastLine.toLowerCase() === 'upload') {
+                        // Trigger the file input dialog
+                        fileInput.click();
+                        lines.pop(); // Remove the 'Upload' command
+                        codeInput.value = lines.join('\n');
+                    } else if (lastLine.toLowerCase() === 'run') {
+                        lines.pop();
+                        codeInput.value = lines.join('\n');
+                        runCode();
+                    } else if (lastLine.toLowerCase() === 'cls') {
+                        codeInput.value = ''; // Clear the screen
+                    } else if (lastLine.toLowerCase() === 'help') {
+                        lines.pop();
+                        codeInput.value = lines.join('\n');
+                        codeInput.value += '\n' + getHelpText();
+                    } else if (lastLine.toLowerCase() === 'copyright') {
+                        lines.pop();
+                        codeInput.value = lines.join('\n');
+                        codeInput.value += '\n' + getCopyrightText();
+                    } else {
+                        codeInput.value += '\n';
+                    }
+                }
+            }
+
+            fileInput.addEventListener('change', handleFile);
+
+            function handleFile(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const contents = e.target.result;
+                        codeInput.value = contents;
+                    };
+                    reader.readAsText(file);
+                }
+            }
+
+            function runCode() {
+                const code = codeInput.value;
+                try {
+                    const result = interpretCookieCode(code);
+                    codeInput.value += '\n' + result;
+                } catch (error) {
+                    codeInput.value += `\nError: ${error.message}`;
+                }
+            }
+
+            function interpretCookieCode(code) {
+                const lines = code.split('\n');
+                let output = '';
+                const variables = {};
+
+                lines.forEach(line => {
+                    const trimmedLine = line.trim();
+
+                    if (trimmedLine.startsWith('var(declare):')) {
+                        const varName = trimmedLine.slice(13).trim().replace(/\"/g, '');
+                        variables[varName] = { type: null, value: null };
+                    } else if (trimmedLine.startsWith('var(declare-type):')) {
+                        const parts = trimmedLine.slice(18).trim().split(' ');
+                        const varName = parts[0].replace(/\"/g, '');
+                        const varType = parts[1];
+                        if (variables[varName]) {
+                            variables[varName].type = varType;
+                        } else {
+                            throw new Error(`Variable ${varName} is not declared.`);
+                        }
+                    } else if (trimmedLine.startsWith('var(value-set):')) {
+                        const parts = trimmedLine.slice(15).trim().split(' ');
+                        const varName = parts[0].replace(/\"/g, '');
+                        let varValue = parts.slice(1).join(' ').replace(/\"/g, '');
+                        if (variables[varName]) {
+                            switch (variables[varName].type) {
+                                case 'number':
+                                    varValue = parseFloat(varValue);
+                                    if (isNaN(varValue)) {
+                                        throw new Error(`Invalid number value for variable ${varName}`);
+                                    }
+                                    break;
+                                case 'boolean':
+                                    if (varValue === 'T') {
+                                        varValue = true;
+                                    } else if (varValue === 'F') {
+                                        varValue = false;
+                                    } else {
+                                        throw new Error(`Invalid boolean value for variable ${varName}`);
+                                    }
+                                    break;
+                                case 'string':
+                                    // No conversion needed
+                                    break;
+                                default:
+                                    throw new Error(`Unknown type for variable ${varName}`);
+                            }
+                            variables[varName].value = varValue;
+                        } else {
+                            throw new Error(`Variable ${varName} is not declared.`);
+                        }
+                    } else if (trimmedLine.startsWith('prt(var):')) {
+                        const varName = trimmedLine.slice(9).trim().replace(/\"/g, '');
+                        if (variables[varName]) {
+                            output += `${variables[varName].value}\n`;
+                        } else {
+                            throw new Error(`Variable ${varName} is not declared.`);
+                        }
+                    } else if (trimmedLine.startsWith('prt(text):')) {
+                        const text = trimmedLine.slice(10).trim().replace(/\"/g, '');
+                        output += `${text}\n`;
+                    } else if (trimmedLine.startsWith('prt:(')) {
+                        const expression = trimmedLine.slice(5, -1).trim();
+                        output += `${evaluateExpression(expression, variables)}\n`;
+                    } else if (trimmedLine === 'Copyright') {
+                        output += getCopyrightText();
+                    } else if (trimmedLine) {
+                        throw new Error(`Unknown command: ${trimmedLine}`);
+                    }
+                });
+
+                return output;
+            }
+
+            function evaluateExpression(expression, variables) {
+                if (expression.startsWith('add(')) {
+                    const args = expression.slice(4, -1).split(',').map(arg => arg.trim());
+                    if (args.length === 2) {
+                        const operand1 = getVariableValue(args[0], variables);
+                        const operand2 = getVariableValue(args[1], variables);
+                        if (typeof operand1 === 'number' && typeof operand2 === 'number') {
+                            return operand1 + operand2;
+                        } else {
+                            throw new Error(`Invalid operands for addition`);
+                        }
+                    } else {
+                        throw new Error(`Invalid syntax for add function`);
+                    }
+                } else if (expression.startsWith('minus(')) {
+                    const args = expression.slice(6, -1).split(',').map(arg => arg.trim());
+                    if (args.length === 2) {
+                        const operand1 = getVariableValue(args[0], variables);
+                        const operand2 = getVariableValue(args[1], variables);
+                        if (typeof operand1 === 'number' && typeof operand2 === 'number') {
+                            return operand1 - operand2;
+                        } else {
+                            throw new Error(`Invalid operands for subtraction`);
+                        }
+                    } else {
+                        throw new Error(`Invalid syntax for minus function`);
+                    }
+                } else if (expression.startsWith('multiply(')) {
+                    const args = expression.slice(9, -1).split(',').map(arg => arg.trim());
+                    if (args.length === 2) {
+                        const operand1 = getVariableValue(args[0], variables);
+                        const operand2 = getVariableValue(args[1], variables);
+                        if (typeof operand1 === 'number' && typeof operand2 === 'number') {
+                            return operand1 * operand2;
+                        } else {
+                            throw new Error(`Invalid operands for multiplication`);
+                        }
+                    } else {
+                        throw new Error(`Invalid syntax for multiply function`);
+                    }
+                } else if (expression.startsWith('divide(')) {
+                    const args = expression.slice(7, -1).split(',').map(arg => arg.trim());
+                    if (args.length === 2) {
+                        const operand1 = getVariableValue(args[0], variables);
+                        const operand2 = getVariableValue(args[1], variables);
+                        if (typeof operand1 === 'number' && typeof operand2 === 'number') {
+                            if (operand2 !== 0) {
+                                return operand1 / operand2;
+                            } else {
+                                throw new Error(`Division by zero`);
+                            }
+                        } else {
+                            throw new Error(`Invalid operands for division`);
+                        }
+                    } else {
+                        throw new Error(`Invalid syntax for divide function`);
+                    }
+                } else {
+                    throw new Error(`Unknown expression: ${expression}`);
+                }
+            }
+
+            function getVariableValue(arg, variables) {
+                if (variables[arg]) {
+                    return variables[arg].value;
+                }
+                const parsedValue = parseFloat(arg);
+                if (!isNaN(parsedValue)) {
+                    return parsedValue;
+                }
+                throw new Error(`Unknown variable or invalid number: ${arg}`);
+            }
+
+            function getHelpText() {
+                return `Available commands:
+- var(declare):"variable_name"
+- var(declare-type):variable_name type
+- var(value-set):variable_name "value"
+- prt(var):"variable_name"
+- prt(text):"some text"
+- prt:(expression)
+- CLS
+- Help
+- Upload
+- Run
+- Copyright
+
+Available functions for expressions:
+- add(x, y)
+- minus(x, y)
+- multiply(x, y)
+- divide(x, y)`;
+            }
+
+            function getCopyrightText() {
+                return `NetDig™ Open Source License
+Version 1.01
+
+Copyright (c) 2024 NetDig Technologies
+
+1. Definitions.
+"NetDig Technologies" refers to the legal entity that owns the copyright to the Software.
+"License" refers to this document.
+"You" refers to the individual or entity adhering to this License.
+"Software" refers to the work licensed by this document.
+
+2. Grant of Rights.
+NetDig Technologies grants you a worldwide, royalty-free, non-exclusive license to:
+
+Use the Software for any purpose, including commercial use.
+Reproduce, distribute, and modify the Software, including the right to create derivative works, provided that all copies and substantial portions of the Software include proper attribution to NetDig Technologies.
+Distribute modified versions of the Software under the same terms as this License.
+
+3. Patent Rights.
+No patent rights are granted under this License. Any use of patented technology within the Software requires a separate agreement with NetDig Technologies.
+
+4. Trademarks and Branding.
+Any trademarks or branding used in the Software remain the property of NetDig Technologies. You are not permitted to use any trademarks or branding from the Software without explicit written permission from NetDig Technologies.
+
+5. Contributions.
+You are permitted to contribute to the Software. By doing so, you agree to grant NetDig Technologies a non-exclusive, worldwide, royalty-free license to use, distribute, and modify your contributions under the same terms as this License.
+
+6. Distribution.
+You are permitted to distribute the Software and derivative works, provided that all copies and substantial portions of the Software are distributed under this License. Any sublicensing or distribution of the Software must include this License and a copy of the copyright notice.
+
+7. Warranty Disclaimer.
+The Software is provided "as is", without warranties of any kind, express or implied.
+NetDig Technologies is not responsible for any damages, losses, or other issues arising from the use or inability to use the Software.
+
+8. Limitation of Liability.
+In no event shall NetDig Technologies be liable for any indirect, incidental, special, or consequential damages, or for any loss of profits or data, even if advised of the possibility of such damages.
+
+9. Termination.
+This License is effective until terminated. You may terminate it at any time by ceasing all use of the Software and destroying all copies in your possession.
+NetDig Technologies may terminate this License if you fail to comply with any of its terms or conditions. Upon termination, you must stop using the Software and destroy all copies.
+
+10. Governing Law.
+This License is governed by the applicable laws, without regard to its conflict of law principles.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+IN NO EVENT SHALL NETDIG TECHNOLOGIES BE LIABLE FOR ANY DAMAGES OR LOSSES ARISING FROM THE SOFTWARE EXCEPT AS REQUIRED BY LAW.
+END OF LICENSE
+`;
+            }
+
+            window.runCode = runCode;
+        });
+    </script>
+</body>
+</html>
