@@ -1,0 +1,46 @@
+NetDig™ Open Source License
+Version 1.01
+
+Copyright (c) 2024 
+
+1. Definitions.
+"Licensor" refers to the legal entity that owns the copyright to the Software.
+"License" refers to this document.
+"You" refers to the individual or entity adhering to this License.
+"Software" refers to the work licensed by this document.
+
+2. Grant of Rights.
+The licensor grants you a worldwide, royalty-free, non-exclusive license to:
+
+Use the Software for any purpose, including commercial use.
+Reproduce, distribute, and modify the Software, including the right to create derivative works, provided that all copies and substantial portions of the Software include proper attribution to the licensor.
+Distribute modified versions of the Software under the same terms as this License.
+
+3. Patent Rights.
+No patent rights are granted under this License. Any use of patented technology within the Software requires a separate agreement with the licensor.
+
+4. Trademarks and Branding.
+Any trademarks or branding used in the Software remain the property of the licensor. You are not permitted to use any trademarks or branding from the Software without explicit written permission from the licensor.
+
+5. Contributions.
+You are permitted to contribute to the Software. By doing so, you agree to grant the licensor a non-exclusive, worldwide, royalty-free license to use, distribute, and modify your contributions under the same terms as this License.
+
+6. Distribution.
+You are permitted to distribute the Software and derivative works, provided that all copies and substantial portions of the Software are distributed under this License. Any sublicensing or distribution of the Software must include this License and a copy of the copyright notice.
+
+7. Warranty Disclaimer.
+The Software is provided "as is", without warranties of any kind, express or implied.
+The licensor is not responsible for any damages, losses, or other issues arising from the use or inability to use the Software.
+
+8. Limitation of Liability.
+In no event shall the licensor be liable for any indirect, incidental, special, or consequential damages, or for any loss of profits or data, even if advised of the possibility of such damages.
+
+9. Termination.
+This License is effective until terminated. You may terminate it at any time by ceasing all use of the Software and destroying all copies in your possession.
+The licensor may terminate this License if you fail to comply with any of its terms or conditions. Upon termination, you must stop using the Software and destroy all copies.
+
+10. Governing Law.
+This License is governed by the applicable laws, without regard to its conflict of law principles.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY DAMAGES OR LOSSES ARISING FROM THE SOFTWARE EXCEPT AS REQUIRED BY LAW.
